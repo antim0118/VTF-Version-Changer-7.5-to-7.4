@@ -54,7 +54,7 @@ namespace VTFversionChanger
             List<byte> bbytes = new List<byte>();
             for (int i = 0; i < bytes.Length; i++)
             {
-                if (i == 8)
+                if (i == 8 && bytes[i] == 0x05) 
                     bbytes.Add(0x04);
                 else
                     bbytes.Add(bytes[i]);
