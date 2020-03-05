@@ -1,28 +1,27 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.Data;
+using System.Diagnostics;
 using System.Drawing;
 using System.IO;
-using System.Linq;
 using System.Media;
-using System.Text;
-using System.Threading;
-using System.Threading.Tasks;
 using System.Windows.Forms;
 
 namespace VTFversionChanger
 {
     public partial class Form1 : Form
     {
-        #region InitForm1
+        Pen form_active, form_not_active;
+
+        #region InitForm
         public Form1()
         {
             InitializeComponent();
-
             this.Icon = Properties.Resources.vtf;
+            form_active = new Pen(Color.FromArgb(39, 111, 169));
+            form_not_active = new Pen(Color.FromArgb(158, 158, 158));
         }
         #endregion
+
+        #region Form: Buttons
         private void button_change_Click(object sender, EventArgs e)
         {
             using (FolderBrowserDialog fbd = new FolderBrowserDialog())
@@ -41,40 +40,27 @@ namespace VTFversionChanger
             string path = textBox_folder.Text;
             string[] files = Directory.GetFiles(path, "*.vtf", SearchOption.AllDirectories);
 
-            int ia = 0;
-
-            for(int i = 0; i < files.Length; i++)
+            Stopwatch sw = new Stopwatch();
+            sw.Start();
+            for (int i = 0; i < files.Length; i++)
             {
                 string file = files[i];
                 ProcessFile(file);
-                ia++;
-                progressBar.Value = (int)(100f / Convert.ToSingle(files.Length) * Convert.ToSingle(ia));
+                progressBar.Value = (int)(100f / (float)(files.Length) * (float)(i));
                 Application.DoEvents();
             }
+            sw.Stop();
+            Log($"Finished in {sw.ElapsedMilliseconds}ms");
 
             progressBar.Value = 100;
             SystemSounds.Exclamation.Play();
         }
-        #region ProcessFile(string file)
-        private void ProcessFile(string file)
-        {
-            byte[] bytes = File.ReadAllBytes(file);
-            List<byte> bbytes = new List<byte>();
-            for (int i = 0; i < bytes.Length; i++)
-            {
-                if (i == 8 && bytes[i] == 0x05) 
-                    bbytes.Add(0x04);
-                else
-                    bbytes.Add(bytes[i]);
-            }
-            File.WriteAllBytes(file, bbytes.ToArray());
-        }
-        #endregion
+
         private void button_start_single_Click(object sender, EventArgs e)
         {
             OpenFileDialog ofd = new OpenFileDialog();
             ofd.Filter = "Valve Texture File|*.vtf";
-            ofd.Title = "Select a single Texture File"; 
+            ofd.Title = "Select a single Texture File";
             if (ofd.ShowDialog() == DialogResult.OK)
             {
                 ProcessFile(ofd.FileName);
@@ -83,60 +69,11 @@ namespace VTFversionChanger
             }
         }
 
-        private void button_about_Click(object sender, EventArgs e)
-        {
-            About frm = new About();
-
-            frm.Show();
-        }
-
-        #region Form1_FormClosing
-        private void Form1_FormClosing(object sender, FormClosingEventArgs e)
-        {
-            Exit();
-        }
+        private void button_about_Click(object sender, EventArgs e) => new About().Show();
         #endregion
-        #region Exit()
-        private void Exit()
-        {
-            try
-            {
-                if(!string.IsNullOrEmpty(textBox_folder.Text))
-                if (File.Exists("settings.cfg"))
-                {
-                    File.Delete("settings.cfg");
-                }
-                File.WriteAllText("settings.cfg", textBox_folder.Text);
-            }
-            catch { }
-            if (garbage.IsAlive)
-                garbage.Suspend();
-            if (updater.IsAlive)
-                updater.Suspend();
-            Environment.Exit(Environment.ExitCode);
-        }
-        #endregion
-        #region WndProc (move window)
-        protected override void WndProc(ref Message m)
-        {
-            if (m.Msg == 0x84)
-            {
-                m.Result = (IntPtr)2;  // move
-                return;
-            }
-            base.WndProc(ref m);
-        }
-        #endregion
-        #region Form1_Load
-        private Thread garbage, updater;
+        #region Form: Load
         private void Form1_Load(object sender, EventArgs e)
         {
-            garbage = new Thread(Garbage);
-            garbage.Start();
-
-            updater = new Thread(Updater);
-            updater.Start();
-
             try
             {
                 if (File.Exists("settings.cfg"))
@@ -151,29 +88,10 @@ namespace VTFversionChanger
             }
         }
         #endregion
-        #region threads
-        private void Updater()
-        {
-            while (true)
-            {
-                Thread.Sleep(100);
-                Invoke((MethodInvoker)delegate ()
-                {
-                    Refresh();
-                });
-            }
-        }
-
-        private void Garbage()
-        {
-            while (true)
-            {
-                Thread.Sleep(10000);
-                GC.Collect();
-            }
-        }
+        #region Form: Closing
+        private void Form1_FormClosing(object sender, FormClosingEventArgs e) => Exit();
         #endregion
-        #region form paint
+        #region Form: Paint
         public bool FormIsActive
         {
             get
@@ -185,28 +103,82 @@ namespace VTFversionChanger
         private void Form1_Paint(object sender, PaintEventArgs e)
         {
             if (FormIsActive)
-                e.Graphics.DrawRectangle(new Pen(Color.FromArgb(39, 111, 169)), 0f, 0f, Width - 1, Height - 1);
+                e.Graphics.DrawRectangle(form_active, 0f, 0f, Width - 1, Height - 1);
             else
-                e.Graphics.DrawRectangle(new Pen(Color.FromArgb(158, 158, 158)), 0f, 0f, Width - 1, Height - 1);
+                e.Graphics.DrawRectangle(form_not_active, 0f, 0f, Width - 1, Height - 1);
         }
         #endregion
-        #region Control buttons (exit and minimize)
-        private void button_exit_Click(object sender, EventArgs e)
-        {
-            Exit();
-        }
-
-        private void button_minimize_Click(object sender, EventArgs e)
-        {
-            WindowState = FormWindowState.Minimized;
-        }
-        #endregion
-        #region Form1_SizeChanged
+        #region Form: SizeChanged
         private void Form1_SizeChanged(object sender, EventArgs e)
         {
             if (WindowState == FormWindowState.Maximized)
                 WindowState = FormWindowState.Normal;
         }
         #endregion
+        #region Form: Control buttons (exit and minimize)
+        private void button_exit_Click(object sender, EventArgs e) => Exit();
+        private void button_minimize_Click(object sender, EventArgs e) => WindowState = FormWindowState.Minimized;
+        #endregion
+
+        #region WndProc (for moving window)
+        protected override void WndProc(ref Message m)
+        {
+            if (m.Msg == 0x84)
+            {
+                m.Result = (IntPtr)2;  // move
+                return;
+            }
+            base.WndProc(ref m);
+        }
+        #endregion
+
+        #region Exit
+        private void Exit()
+        {
+            try
+            {
+                if (!string.IsNullOrEmpty(textBox_folder.Text))
+                {
+                    if (File.Exists("settings.cfg")) File.Delete("settings.cfg");
+                    File.WriteAllText("settings.cfg", textBox_folder.Text);
+                }
+            }
+            catch { }
+            Environment.Exit(Environment.ExitCode);
+        }
+        #endregion
+
+        #region Timer: UI updater
+        private void timer_uiupdater_Tick(object sender, EventArgs e) => Refresh();
+        #endregion
+
+        #region ProcessFile
+        private void ProcessFile(string file)
+        {
+            //old method: 1st try - 4010ms, 2nd try - ~13000ms
+            //new method: 1st try - 70ms,   2nd try - 60ms
+            using (FileStream FS = File.OpenRead(file))
+            using (BinaryReader BR = new BinaryReader(FS))
+            {
+                int id = BR.ReadInt32();
+                if (id != 0x465456)
+                {
+                    Log($"Wrong ID. File: {file}");
+                    return;
+                }
+                int majorVersion = BR.ReadInt32(); //==7 anyway
+                int minorVersion = BR.ReadInt32();
+                if (minorVersion != 5) return; //skip vtfs that are not 7.5
+            }
+            using (FileStream FS = File.OpenWrite(file))
+            using (BinaryWriter BW = new BinaryWriter(FS))
+            {
+                BW.Seek(8, SeekOrigin.Begin); //skip id and major version
+                BW.Write((int)4); //write minor version to 4
+            }
+        }
+        #endregion
+
+        private void Log(string text) => richTextBox_log.Text += $"[{DateTime.Now.ToString("HH:mm:ss")}]" + text + "\n";
     }
 }

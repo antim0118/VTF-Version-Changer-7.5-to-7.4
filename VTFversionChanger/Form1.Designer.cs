@@ -28,6 +28,7 @@
         /// </summary>
         private void InitializeComponent()
         {
+            this.components = new System.ComponentModel.Container();
             this.textBox_folder = new System.Windows.Forms.TextBox();
             this.label1 = new System.Windows.Forms.Label();
             this.button_change = new System.Windows.Forms.Button();
@@ -38,6 +39,8 @@
             this.button_exit = new System.Windows.Forms.Button();
             this.label_header = new System.Windows.Forms.Label();
             this.progressBar = new VTFversionChanger.NewgrassBar();
+            this.richTextBox_log = new System.Windows.Forms.RichTextBox();
+            this.timer_uiupdater = new System.Windows.Forms.Timer(this.components);
             this.SuspendLayout();
             // 
             // textBox_folder
@@ -153,12 +156,27 @@
             this.progressBar.Size = new System.Drawing.Size(475, 22);
             this.progressBar.TabIndex = 4;
             // 
+            // richTextBox_log
+            // 
+            this.richTextBox_log.Location = new System.Drawing.Point(12, 109);
+            this.richTextBox_log.Name = "richTextBox_log";
+            this.richTextBox_log.ReadOnly = true;
+            this.richTextBox_log.Size = new System.Drawing.Size(475, 72);
+            this.richTextBox_log.TabIndex = 10;
+            this.richTextBox_log.Text = "";
+            // 
+            // timer_uiupdater
+            // 
+            this.timer_uiupdater.Enabled = true;
+            this.timer_uiupdater.Tick += new System.EventHandler(this.timer_uiupdater_Tick);
+            // 
             // Form1
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(33)))), ((int)(((byte)(33)))), ((int)(((byte)(33)))));
-            this.ClientSize = new System.Drawing.Size(500, 118);
+            this.ClientSize = new System.Drawing.Size(500, 192);
+            this.Controls.Add(this.richTextBox_log);
             this.Controls.Add(this.label_header);
             this.Controls.Add(this.button_minimize);
             this.Controls.Add(this.button_exit);
@@ -194,6 +212,8 @@
         private System.Windows.Forms.Button button_exit;
         private System.Windows.Forms.Label label_header;
         private NewgrassBar progressBar;
+        private System.Windows.Forms.RichTextBox richTextBox_log;
+        private System.Windows.Forms.Timer timer_uiupdater;
     }
 }
 

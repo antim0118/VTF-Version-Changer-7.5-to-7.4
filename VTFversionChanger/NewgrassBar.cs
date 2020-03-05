@@ -1,50 +1,49 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Drawing;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows.Forms;
 
 namespace VTFversionChanger
 {
     public class NewgrassBar : ProgressBar
     {
+        float tempprogress = 0f;
+        Rectangle rec;
+        Brush brush;
+
         public NewgrassBar()
         {
+            brush = new SolidBrush(Color.FromArgb(39, 111, 169));
             this.SetStyle(ControlStyles.UserPaint, true);
+            Timer timer = new Timer
+            {
+                Interval = 33,
+                Enabled = true
+            };
+            timer.Tick += Timer_Tick;
         }
 
-        float _ = 0;
-        float tempprogress = 0f;
+        private void Timer_Tick(object sender, EventArgs e)
+        {
+            if (Math.Round(tempprogress, 0) != rec.Width)
+                this.Refresh();
+        }
+
         protected override void OnPaint(PaintEventArgs e)
         {
-            Rectangle rec = e.ClipRectangle;
+            Rectangle _rec = e.ClipRectangle;
 
-            rec.Width = (int)(rec.Width * ((double)Value / Maximum)) - 4;
+            _rec.Width = (int)(_rec.Width * ((double)Value / Maximum)) - 4;
             if (ProgressBarRenderer.IsSupported)
                 ProgressBarRenderer.DrawHorizontalBar(e.Graphics, e.ClipRectangle);
-            rec.Height = rec.Height - 4;
-            var brush = new SolidBrush(Color.FromArgb(39, 111, 169));
-            e.Graphics.FillRectangle(brush, 2, 2, tempprogress, rec.Height);
+            _rec.Height = _rec.Height - 4;
 
-            
-            for(int a = 0; a < 3; a++)
-            {
-                for(int i = 0; i < 5; i++)
-                {
-                    float _1 = 2 + (_ + 10) % (Width + 60) + i + a * 6 - 30;
-                    float _2 = 2 + _ % (Width+ 60) + i + a * 6 - 30;
-                    if (_1 > _2)
-                        e.Graphics.DrawLine(new Pen(Color.FromArgb((int)(100f / 4 * i), 230, 230, 230)), _1, 2, _2, 2 + rec.Height);
-                }
-            }
+            e.Graphics.FillRectangle(brush, 2, 2, tempprogress, _rec.Height);
 
-            _++;
-            if (rec.Width >= tempprogress)
-                tempprogress += (rec.Width - tempprogress) / 20f;
+            if (_rec.Width >= tempprogress)
+                tempprogress += (_rec.Width - tempprogress) / 10f;
             else
-                tempprogress = rec.Width; 
+                tempprogress = _rec.Width;
+            rec = _rec;
         }
     }
 }

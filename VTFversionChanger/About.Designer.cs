@@ -28,11 +28,13 @@
         /// </summary>
         private void InitializeComponent()
         {
+            this.components = new System.ComponentModel.Container();
             this.label_soft = new System.Windows.Forms.Label();
             this.label_createdby = new System.Windows.Forms.Label();
             this.button_close = new System.Windows.Forms.Button();
             this.linkLabel_antim = new System.Windows.Forms.LinkLabel();
             this.label1 = new System.Windows.Forms.Label();
+            this.timer_anim = new System.Windows.Forms.Timer(this.components);
             this.SuspendLayout();
             // 
             // label_soft
@@ -92,8 +94,14 @@
             this.label1.Name = "label1";
             this.label1.Size = new System.Drawing.Size(45, 16);
             this.label1.TabIndex = 4;
-            this.label1.Text = "2018";
+            this.label1.Text = "2020";
             this.label1.TextAlign = System.Drawing.ContentAlignment.TopRight;
+            // 
+            // timer_anim
+            // 
+            this.timer_anim.Enabled = true;
+            this.timer_anim.Interval = 10;
+            this.timer_anim.Tick += new System.EventHandler(this.Anim);
             // 
             // About
             // 
@@ -131,5 +139,6 @@
         private System.Windows.Forms.Button button_close;
         private System.Windows.Forms.LinkLabel linkLabel_antim;
         private System.Windows.Forms.Label label1;
+        private System.Windows.Forms.Timer timer_anim;
     }
 }
